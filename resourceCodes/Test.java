@@ -28,12 +28,12 @@ import arayuz.TiklamaYollayicisi;
 
 public class Test 
 {
-	static FileWriter fw = null;//Dosyaya yazma işlemini yapan nesne
+	static FileWriter fw = null;//Object created to write on a file
 
 
 	public static void main(String[] args) 
 	{
-		final BufferedImage image = new BufferedImage(1280, 720, BufferedImage.TYPE_INT_BGR);//Harita çizdirmede kullanılan nesne
+		final BufferedImage image = new BufferedImage(1280, 720, BufferedImage.TYPE_INT_BGR);//Object created to print the map
 		JPanel canvas = new JPanel() {
 			/**
 			 * 
@@ -46,20 +46,20 @@ public class Test
 				g.drawImage(image, 0, 0, this);
 			}
 		};
-		//Kullanıcıya gerekli hataları verecek olan pencere nesnesi oluşturuluyor ve gerekli ayarlamalar yapılıyor.
+		//Creating the error message tab and making some adjustments.
 		HataMesaji hataMesaji = new HataMesaji();
 		hataMesaji.setLocation(640,360);
-		hataMesaji.setAlwaysOnTop(true);//Hata mesajı açık olduğu sürece ana ekranın önünde duracak
-		hataMesaji.setUndecorated(true);//Çerçeveleri kaldırılarak kontrolsüz kapatma işlemi engelleniyor ve tek kapatma işlemi "tamam" butonuna basmayla gerçekleşiyor.
+		hataMesaji.setAlwaysOnTop(true);//Making error message always on top to make it visible unitil it is closed.
+		hataMesaji.setUndecorated(true);//Removing borders and other elements to prevent unchecked closures. To close an error message click "OK"
 		hataMesaji.getRootPane().setWindowDecorationStyle(JRootPane.NONE);
-		AnaEkran anaEkran = new AnaEkran();//Birleştirilmiş arayüz nesnesi
-		JFrame frame = new JFrame();//Haritayı boyamada kullanılacak Frame
-		TiklamaYollayicisi tiklaGitsin = new TiklamaYollayicisi();//Haritada hareket ettirilen araçların görev bilgisini alması için oluşturulmuş arayüz parçası
+		AnaEkran anaEkran = new AnaEkran();//Unified interface
+		JFrame frame = new JFrame();//Frame created to paint the map
+		TiklamaYollayicisi tiklaGitsin = new TiklamaYollayicisi();//Interface part to recieve mission information of cars if moved on the map.
 		//Haritanın boyutları ayarlanıyor
 		frame.setLayout(new BorderLayout());
 		frame.add(canvas, BorderLayout.CENTER);
 		frame.setSize(1280, 720);
-		//Boyamada kullanılacak değişkenlere renk atamaları yapılıyor
+		//Assigning colors to objects which will paint the map.
 		canvas.setBackground(Color.black);
 		Graphics centers = image.getGraphics();
 		centers.setColor(Color.green);
@@ -71,22 +71,22 @@ public class Test
 		roads.setColor(Color.DARK_GRAY);
 		Graphics selectedVehicle = image.getGraphics();
 		selectedVehicle.setColor(Color.red);
-		//Araç hareketlerinin daha yumuşak hissettirmesi için saniyenin kırkta birinde harita sıfırlanıp tekrar yazdırılıyor, bu değişken her yeniden boyama işleminin başında haritanın sıfırlanması için kullanılıyor.
+		//To make vehicle movements smooth, the map is printed forty times per second, this object below is used to do this.
 		Graphics resetCanvas = image.getGraphics();
 		resetCanvas.clearRect(0, 0, 1280, 720);
-		//Arayüzlerin işletim sisteminin kendi çerçevelerini kullanması için yazılan kod bloğu. Böylece Mac/Win10/Linux gibi işletim sistemlerinde Win7 çerçeveleri kullanılmayacak.
+		//Setting Window properties to look like natural in different operating systems. So you won't see Win7 buttons in MacOS/Linux/Win10
 		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (Throwable e) {
 			e.printStackTrace();
 		}
-		//Kullanılan Linkli listelerin tanımlandığı kod bloğu
-		LinkedList<Arac> araclar = new LinkedList<Arac>();//Mevcut araçları tutan linkli liste
-		LinkedList<Bolge> bolgeler = new LinkedList<Bolge>();//Bölgeleri tutan linkli liste
-		LinkedList<Konum> sinirlar = new LinkedList<Konum>();//Sınırları tutan linkli liste
-		LinkedList<Timer> zamanlayicilar = new LinkedList<Timer>();//Araçların hareketini kontrol eden zamanlayıcılar listesi
+		//Code block to define Linked list used in the code
+		LinkedList<Arac> araclar = new LinkedList<Arac>();//Stores the existing vehicles
+		LinkedList<Bolge> bolgeler = new LinkedList<Bolge>();//Stores the regions
+		LinkedList<Konum> sinirlar = new LinkedList<Konum>();//Stores the borders
+		LinkedList<Timer> zamanlayicilar = new LinkedList<Timer>();//Timers used for controlling movement of vehicles
 
-		//Bölgelerin tanımlandığı kod bloğu
+		//Creating regions
 		Bolge regionA = new Bolge("Alleno", new Konum(98, 96));
 		bolgeler.add(regionA);
 		Bolge regionB = new Bolge("Bemeria", new Konum(412,322));
@@ -109,7 +109,7 @@ public class Test
 		bolgeler.add(regionJ);
 		
 		
-		//Komşulukların tanımlandığı kod blokları
+		//Assigning neighbourhood
 		regionA.getNeighbours().add(new Komsu(regionB,regionA.getDistance(regionB.getLocation())));
 		regionA.getNeighbours().add(new Komsu(regionD,regionA.getDistance(regionD.getLocation())));
 		regionA.getNeighbours().add(new Komsu(regionJ,regionA.getDistance(regionJ.getLocation())));
@@ -158,7 +158,7 @@ public class Test
 		regionJ.getNeighbours().add(new Komsu(regionB,regionJ.getDistance(regionB.getLocation())));
 		regionJ.getNeighbours().add(new Komsu(regionE,regionJ.getDistance(regionE.getLocation())));
 		
-		//Dosyadan okuma işlemi için kullanılacak FileInputStream'in kurulduğu kod bloğu
+		//Setting up file-read
 		FileInputStream input = null;
 		try {
 			input = new FileInputStream("input.txt");
@@ -166,25 +166,25 @@ public class Test
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		//Okuma işleminin yapılması
+		//Reading from file
 		BufferedReader br = new BufferedReader(new InputStreamReader(input));
 		String line2;
 		try {
-			while((line2 = br.readLine())!=null) {//Dosyanın sonuna gelene kadar satır satır okuma işlemi yapılıyor
-				int k;//Stringin hangi indisleri arasında okuma yapacağını belirleyen değişken
-				String plate = line2.substring(0, k=line2.indexOf(','));//ilk kez ',' işareti ile karşılaşılana kadar plaka okunuyor
-				String type = line2.substring(k+1,k=line2.indexOf(',',k+1));//ilk ',' işaretinden bir sonra başlayan ve ikinci ',' işaretine kadar olan kısımda araç tipi okunuyor
-				String missionDescription = line2.substring(k+1, k=line2.indexOf(',',k+1));//Sonraki ',' işaretine kadar görev açıklaması okunuyor.
-				double x = Double.parseDouble(line2.substring(k+1, k=line2.indexOf(',', k+1)));//Yatay konum okunuyor
-				double y = Double.parseDouble(line2.substring(k+1));//Dikey konum okunuyor
-				//Gerekli nesneler oluşturulup araç listesine ekleme yapılıyor ve bu liste gösteriliyor
+			while((line2 = br.readLine())!=null) {//Reading line by line until encountered "null"
+				int k;//Index to check which points of the string will be read
+				String plate = line2.substring(0, k=line2.indexOf(','));//Reading plate unitil encountering ',' sign for the first time
+				String type = line2.substring(k+1,k=line2.indexOf(',',k+1));//Reading vehicle type from the first ',' to second ','
+				String missionDescription = line2.substring(k+1, k=line2.indexOf(',',k+1));//Reading mission description
+				double x = Double.parseDouble(line2.substring(k+1, k=line2.indexOf(',', k+1)));//Reading horizontal location
+				double y = Double.parseDouble(line2.substring(k+1));//reading vertical location
+				//Creating necessary objects and adding to vehicles list
 				Arac a = new Arac(plate, type);
 				a.setCurrentLocation(new Konum(x, y));
 				a.getMission().setMissionDescription(missionDescription);
 				araclar.add(a);
 				anaEkran.listModel.addElement("Plaka: " + araclar.getLast().getPlate()+ " Tip: " + araclar.getLast().getType());
 			}
-			//Okuma işlemleri bittikten sonra input kapatılıyor.
+			//Closing the input
 			try {
 				input.close();
 			} catch (IOException e1) {
@@ -196,7 +196,7 @@ public class Test
 			e2.printStackTrace();
 		}
 		
-		anaEkran.setVisible(true);//Arayüz görünür yapılıyor
+		anaEkran.setVisible(true);//Making interface visible
 		frame.addMouseListener(new MouseListener() {
 			
 			@Override
@@ -226,10 +226,10 @@ public class Test
 			@Override
 			public void mouseClicked(MouseEvent arg0) {
 				// TODO Auto-generated method stub
-				//Fare ile araç seçilmesi ve hareket ettirilmesi için yazılmış kod bloğu
-				int x = arg0.getX();//Fare tıklamasının gerçekleştiği yatay konum
-				int y = arg0.getY();//Fare tıklamasının gerçekleştiği dikey konum
-				if(arg0.getButton()==MouseEvent.BUTTON1) {//Eğer sol fare tıkı gerçekleştiyse farenin mevcut konumu, araçlar listesinde aranıyor, eğer yakın bir araç varsa o aracın bilgileri "Araç görüntüle" bölümüne bastırılıyor.
+				//Code block to make vehicles move using mouse
+				int x = arg0.getX();//Horizontal location of mouse click
+				int y = arg0.getY();//Vertical location of mouse clict
+				if(arg0.getButton()==MouseEvent.BUTTON1) {//If it's an left mouse button click, searching through the vehicles list and finding -if a vehicle is close enough- the closest vehicle and marking it as selected.
 					for (Arac arac : araclar) {
 						if((x-29<arac.getCurrentLocation().getX()&&x+29>arac.getCurrentLocation().getX())&&(y-58<arac.getCurrentLocation().getY()&&y+58>arac.getCurrentLocation().getY())) {
 							anaEkran.getLblArac().setText(arac.getPlate());
@@ -239,13 +239,13 @@ public class Test
 						}
 					}
 				}
-				//Eğer sağ tık yapılmışsa ve seçilen araç kısmı boş değilse son seçilen aracı istenilen bölgeye gönderiyor.
+				//If it's an right mouse button click and a vehicle is selected, moving it to target location.
 				else if(arg0.getButton()==MouseEvent.BUTTON3&&!anaEkran.getTextAreaVehicleInfo().getText().isEmpty()) {
-					tiklaGitsin.setLocation(arg0.getLocationOnScreen());//Görev bilgisinin alınacağı Arayüzün konumu fare ile eşleniyor
-					tiklaGitsin.setVisible(true);//Görev bilgisini alacak olan arayüz görünür yapılıyor
+					tiklaGitsin.setLocation(arg0.getLocationOnScreen());
+					tiklaGitsin.setVisible(true);//Making interface which will get mission description, visible
 					for (Arac arac : araclar) {
 						if(arac.getPlate().compareTo(anaEkran.getLblArac().getText())==0) {
-							arac.moveVehicle(new Konum(x-9, y-38),30,zamanlayicilar,bolgeler);//Araç hareket ettiriliyor.
+							arac.moveVehicle(new Konum(x-9, y-38),30,zamanlayicilar,bolgeler);//Moving the vehicle
 						}
 					}
 				}
